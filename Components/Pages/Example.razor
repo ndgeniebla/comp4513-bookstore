@@ -1,0 +1,17 @@
+@page "/example/{greeting?}"
+@rendermode InteractiveServer
+
+<h1>Example Page</h1>
+
+<p>@Message</p>
+
+<p>@Greeting</p>
+
+<Counter count="1"/>
+
+
+@code {
+    [Parameter] public string? Greeting {get; set;}
+
+    private string Message {get; set;} = "Hello, Blazor";
+}

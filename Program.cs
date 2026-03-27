@@ -1,3 +1,7 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Components.QuickGrid;
+using Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore;
+using comp4513_bookstore.Data;
 using comp4513_bookstore.Components;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -5,8 +9,30 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+    
+
+// setup Database Context
+var connectionString = builder.Configuration.GetConnectionString("BOOKSTORE_DB") ?? throw new InvalidOperationException("Connection string 'BOOKSTORE_DB' not found");
+
+builder.Services.AddDbContextFactory<BookstoreDb>(options => options.UseSqlServer(connectionString,
+ sqlServerOptions => sqlServerOptions.EnableRetryOnFailure(
+    maxRetryCount: 10,
+    maxRetryDelay: TimeSpan.FromSeconds(30),
+    errorNumbersToAdd: null
+
+    )));
+
+builder.Services.AddQuickGridEntityFrameworkAdapter();
+
+builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    SeedData.Initialize(services);
+}
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -14,6 +40,7 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
+    app.UseMigrationsEndPoint();
 }
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseHttpsRedirection();
