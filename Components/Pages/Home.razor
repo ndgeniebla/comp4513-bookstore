@@ -1,7 +1,36 @@
 ﻿@page "/"
+@implements IAsyncDisposable
+@using Microsoft.EntityFrameworkCore
+@inject IDbContextFactory<BookstoreDb> DBFactory
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Bookstore - Home</PageTitle>
 
-<h1>Hello, world!</h1>
+<div class="row mt-5 mx-auto">
+    @if (books is null)
+    {
+        <p>Loading...</p>
+    }
+    else
+    {
+    
+        <div class="hstack flex-wrap gap-3">
+            @foreach (var book in books)
+            {
+                <BookCard Book="@book" />
+            }
+        </div>
+    }
+</div>
 
-Welcome to your new app.
+@code {
+    private BookstoreDb context { get; set; }
+
+    private IEnumerable<Book> books => context.Books.AsNoTracking();
+
+    protected override void OnInitialized()
+    {
+        context = DBFactory.CreateDbContext();
+    }
+    
+    public async ValueTask DisposeAsync() => await context.DisposeAsync();
+}
