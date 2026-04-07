@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components.QuickGrid;
 using Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore;
 using comp4513_bookstore.Data;
 using comp4513_bookstore.Components;
+using comp4513_bookstore.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,6 +26,7 @@ builder.Services.AddDbContextFactory<BookstoreDb>(options => options.UseSqlServe
 builder.Services.AddQuickGridEntityFrameworkAdapter();
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+builder.Services.AddScoped<OrderState>();
 
 var app = builder.Build();
 

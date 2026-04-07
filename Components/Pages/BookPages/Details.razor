@@ -3,6 +3,8 @@
 @using comp4513_bookstore.Models
 @inject IDbContextFactory<comp4513_bookstore.Data.BookstoreDb> DbFactory
 @inject NavigationManager NavigationManager
+@inject OrderState OrderState
+@rendermode InteractiveServer
 
 <PageTitle>Bookstore - Details - @(book != null ? book.Title : "Loading...")</PageTitle>
 
@@ -10,15 +12,13 @@
 
 <div class="row">
     <div class="col-md-8">
-        @if (book is null)
-        {
+        @if (book is null) {
             <p>Loading...</p>
         }
-        else
-        {
+        else {
             <div class="row">
                 <div class="col-sm-4">
-                    <img src="@book.CoverImageUrl" alt="@book.Title" class="img-fluid w-100 object-fit-cover">
+                    <img src="@book.CoverImageUrl" alt="@book.Title" class="img-fluid w-100 object-fit-cover" />
                 </div>
 
                 <div class="col-sm-8 position-relative">
@@ -40,22 +40,27 @@
                         <dt class="col-sm-4">Price</dt>
                         <dd class="col-sm-8">@book.Price</dd>
                     </dl>
-
                     <div>
                         <a href="@($"/books/edit?id={book.Id}")">Edit</a> |
                         <a href="@($"/")">Back to List</a>
                     </div>
 
                     <div class="position-absolute bottom-0">
-                        <button class="btn btn-warning">Purchase</button>
+                        <button class="btn btn-warning" @onclick="() => AddToCart(book)">Purchase</button>
                     </div>
                 </div>
-
             </div>
-
         }
     </div>
-    
+    @* <h2>Book</h2> *@
+    @* <hr /> *@
+    @if (book is null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else {
+        
+    }
 </div>
 
 @code {
@@ -73,5 +78,9 @@
         {
             NavigationManager.NotFound();
         }
+    }
+
+    private void AddToCart(Book book) {
+        OrderState.AddItem(new OrderItem {Book = book, Quantity = 1 });
     }
 }
