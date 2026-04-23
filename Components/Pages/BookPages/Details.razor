@@ -63,8 +63,22 @@
     }
 </div>
 
+@if (recommendedBooks is not null && recommendedBooks.Count > 0)
+{
+    <div class="mt-5">
+        <h6 class="fw-bold">Customers who bought this item also bought</h6>
+        <div class="d-flex flex-wrap gap-3">
+            @foreach (var rec in recommendedBooks)
+            {
+                <BookCard Book="rec" />
+            }
+        </div>
+    </div>
+}
+
 @code {
     private Book? book;
+    private List<Book>? recommendedBooks;
 
     [SupplyParameterFromQuery]
     private int Id { get; set; }
@@ -73,11 +87,34 @@
     {
         using var context = DbFactory.CreateDbContext();
         book = await context.Books.FirstOrDefaultAsync(m => m.Id == Id);
-
+        
         if (book is null)
         {
             NavigationManager.NotFound();
+            return;
         }
+
+
+        //find orders that have the chosen book, then select the books that aren't the chosen book
+        var orderIdsWithThisBook = await context.Orders
+            .Where(o => o.OrderItems.Any(oi => oi.Book.Id == Id))
+            .Select(o => o.Id)
+            .ToListAsync();
+
+        //get recommended books
+        var recommendedBookIds = await context.Orders
+            .Where(o => orderIdsWithThisBook.Contains(o.Id))
+            .SelectMany(o => o.OrderItems)
+            .Select(oi => oi.Book.Id)
+            .Where(bookId => bookId != Id)
+            .Distinct()
+            .ToListAsync();
+
+
+        //populate list
+        recommendedBooks = await context.Books
+            .Where(b => recommendedBookIds.Contains(b.Id))
+            .ToListAsync();
     }
 
     private void AddToCart(Book book) {

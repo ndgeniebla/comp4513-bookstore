@@ -24,6 +24,7 @@ public class OrderState
 
     public void ResetOrder() // after placing an order (end of checkout process)
     {
-        Order = new Order();
+        Order = new Order { OrderItems = new List<OrderItem>() };
+        OnChange?.Invoke();
     }
 }
